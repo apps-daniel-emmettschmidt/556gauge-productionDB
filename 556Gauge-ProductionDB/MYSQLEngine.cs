@@ -40,21 +40,19 @@ namespace _556Gauge_ProductionDB
                 this.SQLLog(NREx.Message);
 
                 this.CutoffDate = "1066-10-14 11:59:59";
-
-                this.SQLLog("Set Cutoff to " + this.CutoffDate);
             }
             catch (Exception Ex)
             {
                 throw Ex;
             }
+
+            this.SQLLog("Set Cutoff to " + this.CutoffDate);
         }
 
         private void SQLLog(string log)
         {
             this.Logger.log(log);
         }
-
-
 
         private string ReadCutoffDate()
         {
