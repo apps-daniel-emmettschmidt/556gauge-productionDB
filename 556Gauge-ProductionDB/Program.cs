@@ -16,9 +16,13 @@ namespace _556Gauge_ProductionDB
 
             logger.log("Logger constructed.");
 
+            string ProductionServer = "", ProductionUser = "", ProductionPassword = "";
+
+            string ProductionDatabase = "556prod";
+
             string BackupServer = "", BackupUser = "", BackupPassword = "";
 
-            string BackupDatabase = "556prod";
+            string BackupDatabase = "prices";
 
             if (args.Length == 3)
             {
@@ -29,19 +33,33 @@ namespace _556Gauge_ProductionDB
 
                 try
                 {
+                    ProductionServer = ReadFromFile("pserver.txt");
+
+                    logger.log("Found production server name " + ProductionServer + ".");
+
+                    ProductionUser = ReadFromFile("puser.txt");
+
+                    logger.log("Found production user name " + ProductionUser + ".");
+
+                    ProductionPassword = ReadFromFile("ppw.txt");
+
+                    logger.log("Found production password " + ProductionPassword + ".");
+
+                    logger.log("Production database name is set to " + ProductionDatabase + ".");
+
                     BackupServer = ReadFromFile("bserver.txt");
 
-                    logger.log("Found server name " + BackupServer + ".");
+                    logger.log("Found backup server name " + BackupServer + ".");
 
                     BackupUser = ReadFromFile("buser.txt");
 
-                    logger.log("Found user name " + BackupUser + ".");
+                    logger.log("Found backup user name " + BackupUser + ".");
 
                     BackupPassword = ReadFromFile("bpw.txt");
 
-                    logger.log("Found password " + BackupPassword + ".");
+                    logger.log("Found backup password " + BackupPassword + ".");
 
-                    logger.log("Database name is set to " + BackupDatabase + ".");
+                    logger.log("Backup database name is set to " + BackupDatabase + ".");
 
                 }
                 catch (Exception ex)
@@ -51,18 +69,25 @@ namespace _556Gauge_ProductionDB
             }
             else
             {
-                logger.log("Utility will not run - you must enter 0 arguments (for dev) or 3 (production), you entered " + args.Length + ".");
+                logger.log("Utility will not run - you must enter 0 arguments (for dev) or 6 (production), you entered " + args.Length + ".");
 
                 return;
             }
+                       
 
             try
             {
-                MYSQLEngine mYSQLEngine = new MYSQLEngine(BackupServer, BackupUser, BackupDatabase, BackupPassword, logger);
+                MYSQLEngine mySQLEngine = new MYSQLEngine(ProductionServer, ProductionUser, ProductionDatabase, ProductionPassword, logger);
+
+                SQLServerEngine sqlServerEngine = new SQLServerEngine(BackupServer, BackupDatabase, BackupUser, BackupPassword, logger);
+
+                mySQLEngine.InsertPriceRows(sqlServerEngine.GetRowsSinceCutoff(mySQLEngine.CutoffDate));
             }
             catch (Exception ex)
             {
                 logger.log(ex.Message);
+
+                return;
             }
         }
 
@@ -108,12 +133,16 @@ namespace _556Gauge_ProductionDB
             this.DisplayLog = display;
         }
 
-        public void log(string log)
+        public string log(string log)
         {
+            string ret = Program.GetDateTimeString() + " -> " + log;
+
             if (this.DisplayLog == true)
             {
-                Console.WriteLine(Program.GetDateTimeString() + " -> " + log); ;
+                Console.WriteLine(ret); ;
             }
+
+            return ret;
         }
     }
 

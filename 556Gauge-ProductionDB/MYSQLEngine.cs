@@ -39,7 +39,7 @@ namespace _556Gauge_ProductionDB
             {
                 this.SQLLog(NREx.Message);
 
-                this.CutoffDate = "1066-10-14 11:59:59";
+                this.CutoffDate = "1800-01-01 11:59:59:000";
             }
             catch (Exception Ex)
             {
@@ -56,7 +56,7 @@ namespace _556Gauge_ProductionDB
 
         private string ReadCutoffDate()
         {
-            EngineQuery eq = new EngineQuery(this.Server, this.User, this.Database, this.Password);
+            MYSQLEngineQuery eq = new MYSQLEngineQuery(this.Server, this.User, this.Database, this.Password);
 
             eq.Query = "SELECT `WriteDate` FROM 556prod.price_observations ORDER BY `WriteDate` DESC LIMIT 1;";
 
@@ -68,7 +68,9 @@ namespace _556Gauge_ProductionDB
             }
             catch(NoRowsException NREx)
             {
-                throw new NoRowsException(eq.Query + " returned no rows.");
+                NREx = new NoRowsException(eq.Query + " returned no rows.");
+
+                throw NREx;
             }
             catch (Exception Ex)
             {
@@ -76,7 +78,37 @@ namespace _556Gauge_ProductionDB
             }
         }
 
-        public static List<List<string>> Execute(EngineQuery EQ)
+        public bool InsertPriceRows(List<List<string>> rows)
+        {
+            foreach(List<string> row in rows)
+            {
+                MYSQLEngineQuery eq = new MYSQLEngineQuery(this.Server, this.User, this.Database, this.Password);
+
+                eq.Query = "INSERT INTO `556prod`.`price_observations` (`isPPR`, `price`, `rounds`, `PPR`, `prodTitle`, `prodSource`, `scrapeURL`, `WriteDate`, `ObservationID`) " + 
+                    "VALUES(" + 
+                    ""  + row[0] + ", " +
+                    ""  + row[1] + ", " +
+                    ""  + row[2] + ", " +
+                    ""  + row[3] + ", " +
+                    "'" + row[4] + "', " +
+                    "'" + row[5] + "', " +
+                    "'" + row[6] + "', " +
+                    "'" + row[7] + "', " +
+                    ""  + row[8] + ");";
+
+                Execute(eq, false);
+            }
+
+
+            return false;
+        }
+
+        private static List<List<string>> Execute(MYSQLEngineQuery EQ)
+        {
+            return Execute(EQ, true);
+        }
+
+        private static List<List<string>> Execute(MYSQLEngineQuery EQ, bool read)
         {
             string connStr = "server="
                                 + EQ.Server
@@ -99,10 +131,10 @@ namespace _556Gauge_ProductionDB
 
                 MySqlDataReader rdr = cmd.ExecuteReader();
 
-
-
-                if (EQ.Query.ToLower().Contains("select"))
+                if (read == true)
                 {
+                    int DateColNum = FindDateColNum(rdr);
+
                     while (rdr.Read())
                     {
                         List<string> tackon = new List<string>();
@@ -111,7 +143,16 @@ namespace _556Gauge_ProductionDB
 
                         while (ii < rdr.FieldCount)
                         {
-                            tackon.Add(rdr[ii].ToString());
+                            if (ii == DateColNum)
+                            {
+                                DateTime writedate = (DateTime)rdr[ii];
+
+                                tackon.Add(writedate.ToString("yyyy-MM-dd HH:mm:ss:fff"));
+                            }
+                            else
+                            {
+                                tackon.Add(rdr[ii].ToString());
+                            }
                             ii++;
                         }
 
@@ -132,7 +173,7 @@ namespace _556Gauge_ProductionDB
 
             conn.Close();
 
-            if (ret.Count == 0)
+            if (ret.Count == 0 && read == true)
             {
                 throw new NoRowsException();
             }
@@ -140,6 +181,19 @@ namespace _556Gauge_ProductionDB
             {
                 return ret;
             }
+        }
+
+        static private int FindDateColNum(MySqlDataReader rdr)
+        {
+            for (int ii = 0; ii < rdr.FieldCount; ii++)
+            {
+                if (rdr.GetName(ii) == "WriteDate")
+                {
+                    return ii;
+                }
+            }
+
+            throw new Exception("Did not find a 'WriteDate' column");
         }
 
 

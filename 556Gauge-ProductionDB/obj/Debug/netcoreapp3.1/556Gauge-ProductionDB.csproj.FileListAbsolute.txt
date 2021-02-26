@@ -7,7 +7,6 @@ C:\Dev\GitHub\556Gauge-ProductionDB\556Gauge-ProductionDB\bin\Debug\netcoreapp3.
 C:\Dev\GitHub\556Gauge-ProductionDB\556Gauge-ProductionDB\obj\Debug\netcoreapp3.1\556Gauge-ProductionDB.csprojAssemblyReference.cache
 C:\Dev\GitHub\556Gauge-ProductionDB\556Gauge-ProductionDB\obj\Debug\netcoreapp3.1\556Gauge-ProductionDB.AssemblyInfoInputs.cache
 C:\Dev\GitHub\556Gauge-ProductionDB\556Gauge-ProductionDB\obj\Debug\netcoreapp3.1\556Gauge-ProductionDB.AssemblyInfo.cs
-C:\Dev\GitHub\556Gauge-ProductionDB\556Gauge-ProductionDB\obj\Debug\netcoreapp3.1\556Gauge-ProductionDB.csproj.CoreCompileInputs.cache
 C:\Dev\GitHub\556Gauge-ProductionDB\556Gauge-ProductionDB\obj\Debug\netcoreapp3.1\556Gauge-ProductionDB.dll
 C:\Dev\GitHub\556Gauge-ProductionDB\556Gauge-ProductionDB\obj\Debug\netcoreapp3.1\556Gauge-ProductionDB.pdb
 C:\Dev\GitHub\556Gauge-ProductionDB\556Gauge-ProductionDB\obj\Debug\netcoreapp3.1\556Gauge-ProductionDB.genruntimeconfig.cache
@@ -22,3 +21,10 @@ C:\Dev\GitHub\556Gauge-ProductionDB\556Gauge-ProductionDB\bin\Debug\netcoreapp3.
 C:\Dev\GitHub\556Gauge-ProductionDB\556Gauge-ProductionDB\bin\Debug\netcoreapp3.1\K4os.Hash.xxHash.dll
 C:\Dev\GitHub\556Gauge-ProductionDB\556Gauge-ProductionDB\bin\Debug\netcoreapp3.1\MySql.Data.xml
 C:\Dev\GitHub\556Gauge-ProductionDB\556Gauge-ProductionDB\obj\Debug\netcoreapp3.1\556Gauge-ProductionDB.csproj.CopyComplete
+C:\Dev\GitHub\556Gauge-ProductionDB\556Gauge-ProductionDB\obj\Debug\netcoreapp3.1\556Gauge-ProductionDB.csproj.CoreCompileInputs.cache
+C:\Dev\GitHub\556Gauge-ProductionDB\556Gauge-ProductionDB\bin\Debug\netcoreapp3.1\System.Data.SqlClient.dll
+C:\Dev\GitHub\556Gauge-ProductionDB\556Gauge-ProductionDB\bin\Debug\netcoreapp3.1\runtimes\win-arm64\native\sni.dll
+C:\Dev\GitHub\556Gauge-ProductionDB\556Gauge-ProductionDB\bin\Debug\netcoreapp3.1\runtimes\win-x64\native\sni.dll
+C:\Dev\GitHub\556Gauge-ProductionDB\556Gauge-ProductionDB\bin\Debug\netcoreapp3.1\runtimes\win-x86\native\sni.dll
+C:\Dev\GitHub\556Gauge-ProductionDB\556Gauge-ProductionDB\bin\Debug\netcoreapp3.1\runtimes\unix\lib\netcoreapp2.1\System.Data.SqlClient.dll
+C:\Dev\GitHub\556Gauge-ProductionDB\556Gauge-ProductionDB\bin\Debug\netcoreapp3.1\runtimes\win\lib\netcoreapp2.1\System.Data.SqlClient.dll
