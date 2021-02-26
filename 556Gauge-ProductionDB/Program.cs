@@ -24,8 +24,37 @@ namespace _556Gauge_ProductionDB
 
             string BackupDatabase = "prices";
 
-            if (args.Length == 3)
+            if (args.Length == 6)
             {
+                logger.log("Running as production.");
+
+                ProductionServer = args[0];
+
+                logger.log("Found production server name " + ProductionServer + ".");
+
+                ProductionUser = args[1];
+
+                logger.log("Found production user name " + ProductionUser + ".");
+
+                ProductionPassword = args[2];
+
+                logger.log("Found production password " + ProductionPassword + ".");
+
+                logger.log("Production database name is set to " + ProductionDatabase + ".");
+
+                BackupServer = args[3];
+
+                logger.log("Found backup server name " + BackupServer + ".");
+
+                BackupUser = args[4];
+
+                logger.log("Found backup user name " + BackupUser + ".");
+
+                BackupPassword = args[5];
+
+                logger.log("Found backup password " + BackupPassword + ".");
+
+                logger.log("Backup database name is set to " + BackupDatabase + ".");
             }
             else if (args.Length == 0)
             {
