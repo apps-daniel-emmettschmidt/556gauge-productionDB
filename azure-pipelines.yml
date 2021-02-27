@@ -11,21 +11,21 @@ schedules:
   displayName: Daily 1030
   branches: 
     include:
-    - azure-pipelines
+    - main
   always: true
 
 - cron: "30 21 * * *"
   displayName: Daily 1630
   branches: 
     include:
-    - azure-pipelines
+    - main
   always: true
 
 - cron: "30 3 * * *"
   displayName: Daily 2230
   branches: 
     include:
-    - azure-pipelines
+    - main
   always: true
 
 pool:
