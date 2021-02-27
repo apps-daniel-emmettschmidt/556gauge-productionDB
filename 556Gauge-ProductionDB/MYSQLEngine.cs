@@ -47,11 +47,39 @@ namespace _556Gauge_ProductionDB
             }
 
             this.SQLLog("Set Cutoff to " + this.CutoffDate);
+
+            this.ClearLogs();
         }
 
         private void SQLLog(string log)
         {
             this.Logger.log(log);
+        }
+
+        private void ClearLogs()
+        {
+            MYSQLEngineQuery eq = new MYSQLEngineQuery(this.Server, this.User, this.Database, this.Password);
+
+            DateTime thirtydaysago = (DateTime.Now.AddDays(-30));
+
+            string delete = "DELETE FROM `556prod`.`logs` WHERE `logdate` < '" + thirtydaysago.ToString("yyyy-MM-dd") + "'";
+
+            string connStr = "server="
+                    + eq.Server
+                    + ";user="
+                    + eq.User
+                    + ";database="
+                    + eq.Database
+                    + ";port=3306;password="
+                    + eq.Password;
+
+            MySqlConnection conn = new MySqlConnection(connStr);
+
+            MySqlCommand command = new MySqlCommand(delete, conn);
+
+            conn.Open();
+            command.ExecuteNonQuery();
+            conn.Close();
         }
 
         private string ReadCutoffDate()
