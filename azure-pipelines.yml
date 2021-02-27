@@ -35,4 +35,4 @@ steps:
 
 - task: CmdLine@2
   inputs:
-    script: '556Gauge-ProductionDB.exe %PSERVER% %PUSER% %PPW% %BSERVER% %BUSER% %BPW%'
+    script: 'D:\a\1\s\556Gauge-ProductionDB\bin\Release\netcoreapp3.1\556Gauge-ProductionDB.exe %PSERVER% %PUSER% %PPW% %BSERVER% %BUSER% %BPW%'
