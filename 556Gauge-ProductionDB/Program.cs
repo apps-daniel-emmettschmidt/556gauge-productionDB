@@ -16,6 +16,8 @@ namespace _556Gauge_ProductionDB
 
             logger.log("Logger constructed.");
 
+            logger.log("Receivedd " + args.Length + " arguments.");
+
             string ProductionServer = "", ProductionUser = "", ProductionPassword = "";
 
             string ProductionDatabase = "556prod";
