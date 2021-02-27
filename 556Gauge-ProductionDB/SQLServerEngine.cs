@@ -54,12 +54,14 @@ namespace _556Gauge_ProductionDB
             }
         }
 
-        public List<List<string>> GetRowsSinceCutoff(string cutoff)
+        public List<List<string>> GetRowsSinceCutoff(MYSQLEngine mysqleng)
         {
             using (SqlConnection connection = new SqlConnection(this.EngineConnectionString))
             {
-                string query = "SELECT [isPPR], [price], [rounds], [PPR], [prodTitle], [prodSource], [scrapeURL], [WriteDate], [ObservationID] FROM [dbo].[price_observations] WHERE [WriteDate] > '" + 
-                    cutoff + "'";
+                string query = "SELECT [isPPR], [price], [rounds], [PPR], [prodTitle], [prodSource], [scrapeURL], [WriteDate], [ObservationID] FROM [dbo].[price_observations] WHERE [WriteDate] > '" +
+                    mysqleng.CutoffDate + "'";
+
+                mysqleng.MySQLLog("Began querying for new observations.");
 
                 List<List<string>> ret = new List<List<string>>();
 
@@ -89,6 +91,8 @@ namespace _556Gauge_ProductionDB
 
                     connection.Close();
                 }
+
+                mysqleng.MySQLLog("Found " + ret.Count + " rows.");
 
                 return ret;
             }

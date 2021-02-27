@@ -110,7 +110,7 @@ namespace _556Gauge_ProductionDB
 
                 SQLServerEngine sqlServerEngine = new SQLServerEngine(BackupServer, BackupDatabase, BackupUser, BackupPassword, logger);
 
-                mySQLEngine.InsertPriceRows(sqlServerEngine.GetRowsSinceCutoff(mySQLEngine.CutoffDate));
+                mySQLEngine.InsertPriceRows(sqlServerEngine.GetRowsSinceCutoff(mySQLEngine));
             }
             catch (Exception ex)
             {

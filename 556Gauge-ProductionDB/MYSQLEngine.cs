@@ -51,7 +51,7 @@ namespace _556Gauge_ProductionDB
             this.ClearLogs();
         }
 
-        private void MySQLLog(string log)
+        public void MySQLLog(string log)
         {
             this.Logger.log(log);
 
@@ -122,6 +122,8 @@ namespace _556Gauge_ProductionDB
 
         public bool InsertPriceRows(List<List<string>> rows)
         {
+            this.MySQLLog("Began inserting rows.");
+
             foreach(List<string> row in rows)
             {
                 MYSQLEngineQuery eq = new MYSQLEngineQuery(this.Server, this.User, this.Database, this.Password);
@@ -141,6 +143,7 @@ namespace _556Gauge_ProductionDB
                 Execute(eq, false);
             }
 
+            this.MySQLLog("Completed inserting rows.");
 
             return false;
         }
