@@ -32,3 +32,7 @@ steps:
   inputs:
     platform: '$(buildPlatform)'
     configuration: '$(buildConfiguration)'
+
+- task: CmdLine@2
+  inputs:
+    script: '556Gauge-ProductionDB.exe %PSERVER% %PUSER% %PPW% %BSERVER% %BUSER% %BPW%'
