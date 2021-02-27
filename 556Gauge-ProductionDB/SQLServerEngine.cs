@@ -31,6 +31,27 @@ namespace _556Gauge_ProductionDB
             Console.WriteLine(builder.ConnectionString);
 
             this.EngineConnectionString = builder.ConnectionString;
+
+            this.ClearLogs();
+        }
+
+        private void ClearLogs()
+        {
+            DateTime thirtydaysago = (DateTime.Now.AddDays(-30));
+
+            using (SqlConnection connection = new SqlConnection(this.EngineConnectionString))
+            {
+                string query = "DELETE FROM [dbo].[logs] WHERE LogDate < '" + thirtydaysago.ToString("yyyy-MM-dd") + "'";
+
+                using (SqlCommand command = new SqlCommand(query, connection))
+                {
+                    connection.Open();
+                    command.ExecuteNonQuery();
+                    connection.Close();
+                }
+
+                return;
+            }
         }
 
         public List<List<string>> GetRowsSinceCutoff(string cutoff)
