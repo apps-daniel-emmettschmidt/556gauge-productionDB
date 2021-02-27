@@ -37,7 +37,7 @@ namespace _556Gauge_ProductionDB
             }
             catch (NoRowsException NREx)
             {
-                this.SQLLog(NREx.Message);
+                this.MySQLLog(NREx.Message);
 
                 this.CutoffDate = "1800-01-01 11:59:59:000";
             }
@@ -46,14 +46,28 @@ namespace _556Gauge_ProductionDB
                 throw Ex;
             }
 
-            this.SQLLog("Set Cutoff to " + this.CutoffDate);
+            this.MySQLLog("Set Cutoff to " + this.CutoffDate);
 
             this.ClearLogs();
         }
 
-        private void SQLLog(string log)
+        private void MySQLLog(string log)
         {
             this.Logger.log(log);
+
+            this.WriteLog(log);
+        }
+
+        private void WriteLog(string log)
+        {
+            MYSQLEngineQuery eq = new MYSQLEngineQuery(this.Server, this.User, this.Database, this.Password);
+
+            log = Program.TrimLog(log, 200);
+
+            eq.Query = "INSERT INTO `556prod`.`logs` (`LogDate`, `LogEntry`) VALUES ('" + DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.ffff") + 
+                            "', '" + log + "');";
+
+            Execute(eq, false);
         }
 
         private void ClearLogs()

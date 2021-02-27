@@ -127,6 +127,16 @@ namespace _556Gauge_ProductionDB
             return System.IO.File.ReadAllText(FileName);
         }
 
+        public static string TrimLog(string log, int leng)
+        {
+            if (log.Length > leng)
+            {
+                return log.Substring(0, (leng - 1));
+            }
+
+            return log;
+        }
+
         public static string GetDateTimeString()
         {
             return DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss:fff");
