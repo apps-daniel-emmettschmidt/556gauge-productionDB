@@ -6,6 +6,7 @@
 trigger:
 - main
 
+
 schedules:
 - cron: "30 15 * * *"
   displayName: Daily 1030
