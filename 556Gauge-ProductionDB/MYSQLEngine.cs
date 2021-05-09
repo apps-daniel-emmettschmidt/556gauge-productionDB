@@ -21,34 +21,42 @@ namespace _556Gauge_ProductionDB
 
     class MYSQLEngine
     {
-        public string Server, User, Database, Password, CutoffDate;
+        public MYSQLEngineConnectionParameters ConnectionParameters;
 
         private Logger Logger;
 
         public MYSQLEngine(string server, string user, string database, string password, Logger logger)
         {
-            this.Server = server; this.User = user; this.Database = database; this.Password = password;
+            Initialize(new MYSQLEngineConnectionParameters(server, user, database, password), logger);
+        }
+
+        public MYSQLEngine(MYSQLEngineConnectionParameters ConnectionParameters, Logger logger)
+        {
+            Initialize(ConnectionParameters, logger);
+        }
+
+        private void Initialize(MYSQLEngineConnectionParameters connectionParameters, Logger logger)
+        {
+            this.ConnectionParameters = connectionParameters;
 
             this.Logger = logger;
 
             try
             {
-                this.CutoffDate = this.ReadCutoffDate();
+                long read = this.ReadHighestProdReferenceID();
+
+                this.MySQLLog("Highest prod ID is " + read);
+
+                this.ClearLogs();
             }
             catch (NoRowsException NREx)
             {
                 this.MySQLLog(NREx.Message);
-
-                this.CutoffDate = "1800-01-01 11:59:59:000";
             }
             catch (Exception Ex)
             {
                 throw Ex;
             }
-
-            this.MySQLLog("Set Cutoff to " + this.CutoffDate);
-
-            this.ClearLogs();
         }
 
         public void MySQLLog(string log)
@@ -60,7 +68,7 @@ namespace _556Gauge_ProductionDB
 
         private void WriteLog(string log)
         {
-            MYSQLEngineQuery eq = new MYSQLEngineQuery(this.Server, this.User, this.Database, this.Password);
+            MYSQLEngineQuery eq = new MYSQLEngineQuery(this.ConnectionParameters);
 
             log = Program.TrimLog(log, 200);
 
@@ -70,22 +78,18 @@ namespace _556Gauge_ProductionDB
             Execute(eq, false);
         }
 
+        public string BuildConnectionString()
+        {
+            return this.ConnectionParameters.BuildConnectionString();
+        }
+
         private void ClearLogs()
         {
-            MYSQLEngineQuery eq = new MYSQLEngineQuery(this.Server, this.User, this.Database, this.Password);
-
             DateTime thirtydaysago = (DateTime.Now.AddDays(-30));
 
             string delete = "DELETE FROM `556prod`.`logs` WHERE `logdate` < '" + thirtydaysago.ToString("yyyy-MM-dd") + "'";
 
-            string connStr = "server="
-                    + eq.Server
-                    + ";user="
-                    + eq.User
-                    + ";database="
-                    + eq.Database
-                    + ";port=3306;password="
-                    + eq.Password;
+            string connStr = BuildConnectionString();
 
             MySqlConnection conn = new MySqlConnection(connStr);
 
@@ -96,73 +100,87 @@ namespace _556Gauge_ProductionDB
             conn.Close();
         }
 
-        private string ReadCutoffDate()
+        public long ReadHighestProdReferenceID()
         {
-            MYSQLEngineQuery eq = new MYSQLEngineQuery(this.Server, this.User, this.Database, this.Password);
+            MYSQLEngineQuery eq = new MYSQLEngineQuery(this.ConnectionParameters);
 
-            eq.Query = "SELECT `WriteDate` FROM 556prod.price_observations ORDER BY `WriteDate` DESC LIMIT 1;";
+            eq.Query = "SELECT `Observations`.`BackupID` FROM `556prod`.`Observations` ORDER BY `Observations`.`BackupID` DESC LIMIT 1;";
 
             try
             {
-                List<string> ret = Execute(eq)[0];
-
-                return ret[0];
+                return Execute(eq, true, QueryReturnType.ReturnLongID).ReturnLongResult();
             }
             catch(NoRowsException NREx)
             {
-                NREx = new NoRowsException(eq.Query + " returned no rows.");
+                this.MySQLLog(eq.Query + " returned no rows, returning 0;");
 
-                throw NREx;
+                return 0;
             }
             catch (Exception Ex)
             {
+                this.WriteLog(Ex.Message);
+
                 throw Ex;
             }
         }
 
-        public bool InsertPriceRows(List<List<string>> rows)
+        public void InsertPriceRows(List<BackupQueryRow> rows)
         {
             this.MySQLLog("Began inserting rows.");
 
-            foreach(List<string> row in rows)
+            foreach(BackupQueryRow row in rows)
             {
-                MYSQLEngineQuery eq = new MYSQLEngineQuery(this.Server, this.User, this.Database, this.Password);
+                MYSQLEngineQuery eq = new MYSQLEngineQuery(this.ConnectionParameters);
 
-                eq.Query = "INSERT INTO `556prod`.`price_observations` (`isPPR`, `price`, `rounds`, `PPR`, `prodTitle`, `prodSource`, `scrapeURL`, `WriteDate`, `ObservationID`) " + 
+                eq.Query = "INSERT INTO `556prod`.`Observations` (`isPPR`, `Price`, `Rounds`, `PPR`, `ProductTitle`, `ProductSource`, `ScrapeUrl`, `WhenObserved`, `BackupID`)  " + 
                     "VALUES(" + 
-                    ""  + row[0] + ", " +
-                    ""  + row[1] + ", " +
-                    ""  + row[2] + ", " +
-                    ""  + row[3] + ", " +
-                    "'" + row[4] + "', " +
-                    "'" + row[5] + "', " +
-                    "'" + row[6] + "', " +
-                    "'" + row[7] + "', " +
-                    ""  + row[8] + ");";
+                    ""  + row.Result[0] + ", " +
+                    ""  + row.Result[1] + ", " +
+                    ""  + row.Result[2] + ", " +
+                    ""  + row.Result[3] + ", " +
+                    "'" + row.Result[4] + "', " +
+                    "'" + row.Result[5] + "', " +
+                    "'" + row.Result[6] + "', " +
+                    "'" + row.Result[7] + "', " +
+                    ""  + row.Result[8] + ");";
 
                 Execute(eq, false);
             }
 
             this.MySQLLog("Completed inserting rows.");
 
-            return false;
+            return;
         }
 
-        private static List<List<string>> Execute(MYSQLEngineQuery EQ)
+        private static QueryResult Execute(MYSQLEngineQuery EQ)
         {
-            return Execute(EQ, true);
+            try
+            {
+                return Execute(EQ, true);
+            }
+            catch(NoRowsException nrex)
+            {
+                throw nrex;
+            }
+            catch (MySql.Data.MySqlClient.MySqlException pwex)
+            {
+                throw pwex;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.ToString());
+                throw ex;
+            }
         }
 
-        private static List<List<string>> Execute(MYSQLEngineQuery EQ, bool read)
+        private static QueryResult Execute(MYSQLEngineQuery EQ, bool read)
         {
-            string connStr = "server="
-                                + EQ.Server
-                                + ";user="
-                                + EQ.User
-                                + ";database="
-                                + EQ.Database
-                                + ";port=3306;password="
-                                + EQ.Password;
+            return Execute(EQ, read, QueryReturnType.ReturnStrings);
+        }
+
+        private static QueryResult Execute(MYSQLEngineQuery EQ, bool read, QueryReturnType returnType)
+        {
+            string connStr = EQ.ConnectionParameters.BuildConnectionString();
 
             MySqlConnection conn = new MySqlConnection(connStr);
 
@@ -178,7 +196,17 @@ namespace _556Gauge_ProductionDB
 
                 if (read == true)
                 {
-                    int DateColNum = FindDateColNum(rdr);
+                    int TargetColNum = -1;
+
+                    if (returnType == QueryReturnType.ReturnDateTime)
+                    {
+                        TargetColNum = FindDateColNum(rdr);
+                    }
+
+                    if (returnType == QueryReturnType.ReturnLongID)
+                    {
+                        TargetColNum = FindBackupIDColNum(rdr);
+                    }                        
 
                     while (rdr.Read())
                     {
@@ -188,16 +216,19 @@ namespace _556Gauge_ProductionDB
 
                         while (ii < rdr.FieldCount)
                         {
-                            if (ii == DateColNum)
+                            switch (returnType)
                             {
-                                DateTime writedate = (DateTime)rdr[ii];
+                                case QueryReturnType.ReturnLongID:
+                                    if (ii == TargetColNum) { return EndExecutionWithLong(ref rdr, (long)rdr[ii]); }
+                                    break;
+                                case QueryReturnType.ReturnDateTime:
+                                    if (ii == TargetColNum) { return EndExecutionWithDateTime(ref rdr, (DateTime)rdr[ii]); }
+                                    break;
+                                default:
+                                    tackon.Add(rdr[ii].ToString());
+                                    break;
+                            }
 
-                                tackon.Add(writedate.ToString("yyyy-MM-dd HH:mm:ss:fff"));
-                            }
-                            else
-                            {
-                                tackon.Add(rdr[ii].ToString());
-                            }
                             ii++;
                         }
 
@@ -224,21 +255,119 @@ namespace _556Gauge_ProductionDB
             }
             else
             {
-                return ret;
+                return new QueryResult(ret);
+            }
+        }
+
+        private static QueryResult EndExecutionWithDateTime(ref MySqlDataReader rdr, DateTime dateTime)
+        {
+            rdr.Close();
+            return new QueryResult(dateTime);
+        }
+
+        private static QueryResult EndExecutionWithLong(ref MySqlDataReader rdr, long longID)
+        {
+            rdr.Close();
+            return new QueryResult(longID);
+        }
+
+        static private int FindBackupIDColNum(MySqlDataReader rdr)
+        {
+            try
+            {
+                return FindColNum(rdr, "BackupID");
+            }
+            catch (Exception ex)
+            {
+                throw ex;
             }
         }
 
         static private int FindDateColNum(MySqlDataReader rdr)
         {
+            try
+            {
+                return FindColNum(rdr, "WhenObserved");
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+        }
+
+        static private int FindColNum(MySqlDataReader rdr, string target)
+        {
             for (int ii = 0; ii < rdr.FieldCount; ii++)
             {
-                if (rdr.GetName(ii) == "WriteDate")
+                if (rdr.GetName(ii) == target)
                 {
                     return ii;
                 }
             }
 
-            throw new Exception("Did not find a 'WriteDate' column");
+            throw new Exception($"Did not find a '{target}' column");
         }
+    }
+
+    public class QueryResult
+    {
+        private long? ResultAsLong;
+        private DateTime ResultAsDateTime;
+        private List<List<string>> ResultAsStrings;
+        private byte? complete;
+
+        public QueryResult(long resultAsLong)
+        {
+            this.ResultAsLong = resultAsLong;
+            this.ResultAsStrings = null;
+
+            this.complete = 1;
+        }
+
+        public QueryResult(DateTime resultAsDateTime)
+        {
+            this.ResultAsDateTime = resultAsDateTime;
+            this.ResultAsStrings = null;
+
+            this.complete = 1;
+        }
+
+        public QueryResult(List<List<string>> resultAsStrings)
+        {
+            this.ResultAsStrings = resultAsStrings;
+
+            this.complete = 1;
+        }
+
+        public long ReturnLongResult()
+        {
+            if (this.complete == null || this.complete != 1) { throw new Exception("This result is incomplete!"); }
+            if (ResultAsStrings != null) { throw new Exception("This result has strings!"); }
+
+            return (long)this.ResultAsLong;
+        }
+
+        public DateTime ReturnDateTimeResult()
+        {
+            if (this.complete == null || this.complete != 1) { throw new Exception("This result is incomplete!"); }
+            if (ResultAsStrings != null) { throw new Exception("This result has strings!"); }
+
+            return this.ResultAsDateTime;
+        }
+
+        public List<List<string>> ReturnStringResults()
+        {
+            if (this.complete == null || this.complete != 1) { throw new Exception("This result is incomplete!"); }
+            if (ResultAsStrings == null) { throw new Exception("This result doesn't have strings!"); }
+
+            return this.ResultAsStrings;
+        }
+    }
+
+    public enum QueryReturnType
+    {
+        ReturnLongID,
+        ReturnDateTime,
+        ReturnStrings
     }
 }

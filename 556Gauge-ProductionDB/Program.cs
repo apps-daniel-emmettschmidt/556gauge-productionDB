@@ -9,14 +9,13 @@ namespace _556Gauge_ProductionDB
 {
     class Program
     {        
-
         static void Main(string[] args)
         {
             Logger logger = new Logger(true);
 
             logger.log("Logger constructed.");
 
-            logger.log("Receivedd " + args.Length + " arguments.");
+            logger.log("Received " + args.Length + " arguments.");
 
             string ProductionServer = "", ProductionUser = "", ProductionPassword = "";
 
@@ -104,15 +103,19 @@ namespace _556Gauge_ProductionDB
 
                 return;
             }
-                       
-
+                     
             try
             {
                 MYSQLEngine mySQLEngine = new MYSQLEngine(ProductionServer, ProductionUser, ProductionDatabase, ProductionPassword, logger);
 
                 SQLServerEngine sqlServerEngine = new SQLServerEngine(BackupServer, BackupDatabase, BackupUser, BackupPassword, logger);
 
-                mySQLEngine.InsertPriceRows(sqlServerEngine.GetRowsSinceCutoff(mySQLEngine));
+                while(sqlServerEngine.ReadHighetBackupID() > mySQLEngine.ReadHighestProdReferenceID())
+                {
+                    mySQLEngine.InsertPriceRows(sqlServerEngine.GetRowsSinceCutoff(mySQLEngine));
+                }
+
+                mySQLEngine.MySQLLog("Production now matches Backup.");
             }
             catch (Exception ex)
             {
@@ -160,10 +163,7 @@ namespace _556Gauge_ProductionDB
 
             return start;
         }
-
-    }
-
-    
+    }    
 
     class Logger
     {
